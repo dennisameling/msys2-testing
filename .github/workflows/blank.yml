@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: windows-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      - name: Setup MSYS2
+        # You may pin to the exact commit or the version.
+        # uses: msys2/setup-msys2@6e532aa72709f068e400cc0677a3f49162891b0e
+        uses: msys2/setup-msys2@v2
+        with:
+          # Variant of the environment to set by default: MSYS, MINGW32, MINGW64, UCRT64, CLANG32 or CLANG64
+          msystem: MSYS
+
+      - shell: msys2 {0}
+        name: Add clangarm64 server
+        run: |
+          cat <<EOF >> /etc/pacman.conf
+          [clangarm64]
+          Server = https://mirror.msys2.org/mingw/clangarm64/
+          EOF
+          
+      - shell: msys2 {0}
+        name: Update package database with arm64 entries
+        run: pacman -Sy
+        
+      - shell: msys2 {0}
+        name: Install packages
+        run: pacman -S --noconfirm mingw-w64-clang-aarch64-openssl mingw-w64-clang-aarch64-zlib mingw-w64-clang-aarch64-curl mingw-w64-clang-aarch64-expat
+        
+      - shell: msys2 {0}
+        name: Copy DLLs
+        run: |
+          PACKAGES="libbrotlicommon.dll libbrotlidec.dll libcrypto-1_1.dll libcurl-4.dll libexpat-1.dll\
+          libiconv-2.dll libidn2-0.dll libintl-8.dll libnghttp2-14.dll libpsl-5.dll libssh2-1.dll\
+          libssl-1_1.dll libunistring-2.dll libwinpthread-1.dll libzstd.dll zlib1.dll"
+          
+          mkdir -p ./TESTARTIFACTS
+  
+          for ITEM in ${PACKAGES}
+          do
+            cp /clangarm64/bin/${ITEM} ./TESTARTIFACTS
+          done
+          
+      - shell: msys2 {0}
+        name: Upload artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: test-artifacts
+          path: ./TESTARTIFACTS
