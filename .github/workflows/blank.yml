@@ -43,8 +43,8 @@ jobs:
         
       - name: Copy DLLs
         run: |
-          PACKAGES="libbrotlicommon.dll libbrotlidec.dll libcrypto-1_1.dll libcurl-4.dll libexpat-1.dll\
-          libiconv-2.dll libidn2-0.dll libintl-8.dll libnghttp2-14.dll libpsl-5.dll libssh2-1.dll\
+          PACKAGES="libbrotlicommon.dll libbrotlidec.dll libcrypto-1_1.dll libcurl-4.dll libexpat-1.dll \
+          libiconv-2.dll libidn2-0.dll libintl-8.dll libnghttp2-14.dll libpsl-5.dll libssh2-1.dll \
           libssl-1_1.dll libunistring-2.dll libwinpthread-1.dll libzstd.dll zlib1.dll"
           
           mkdir -p ./TESTARTIFACTS
