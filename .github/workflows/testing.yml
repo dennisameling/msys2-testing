@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: windows-latest
+    
+    defaults:
+      run:
+        shell: msys2 {0}
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      - name: Setup MSYS2
+        # You may pin to the exact commit or the version.
+        # uses: msys2/setup-msys2@6e532aa72709f068e400cc0677a3f49162891b0e
+        uses: msys2/setup-msys2@v2
+        with:
+          # Variant of the environment to set by default: MSYS, MINGW32, MINGW64, UCRT64, CLANG32 or CLANG64
+          msystem: MSYS
+
+      - name: Add clangarm64 server
+        run: |
+          cat <<EOF >> /etc/pacman.conf
+          [clangarm64]
+          Server = https://mirror.msys2.org/mingw/clangarm64/
+          EOF
+          
+      - name: Update package database with arm64 entries
+        run: pacman -Sy
+        
+      - name: Install packages
+        run: |
+          pacman -S --noconfirm mingw-w64-clang-aarch64-openssl
+        
+      - name: ls
+        run: ls
+        
+      - name: ls /clangarm64
+        run: ls /clangarm64
+        
+      - name: cygpath
+        run: |
+          which cygpath
+          cygpath -m $PWD
+          cygpath -m /
+          cygpath -m /clangarm64
+          
+          
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: test-artifacts
+          path: ./TESTARTIFACTS
